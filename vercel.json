@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://johya-fashions-crm-849414808827.asia-south1.run.app/api/:path*"
+      "destination": "https://johya-fashions-cms-507016-243982193320.asia-south1.run.app/api/:path*"
     },
     {
       "source": "/(.*)",
