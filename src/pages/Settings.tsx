@@ -9,7 +9,7 @@ import { useState as useState2 } from 'react';
 import { Loader2 } from 'lucide-react';
 
 export default function Settings() {
-  const [settings, setSettings] = useState<PointSettings>({
+  const [settings, setSettings] = useState<any>({
     minAmount: 1000,
     incrementAmount: 500,
     pointsPerIncrement: 50
@@ -23,7 +23,11 @@ export default function Settings() {
   const [isRecalculating, setIsRecalculating] = useState2(false);
 
   const handleSave = async () => {
-    savePointSettings(settings);
+    savePointSettings({
+      minAmount: Number(settings.minAmount) || 0,
+      incrementAmount: Number(settings.incrementAmount) || 1, // prevent divide by zero
+      pointsPerIncrement: Number(settings.pointsPerIncrement) || 0
+    });
     toast.success('Point settings saved locally.');
   };
   
@@ -35,7 +39,11 @@ export default function Settings() {
       const res = await fetch('/api/customers/recalculate-points', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
+        body: JSON.stringify({
+          minAmount: Number(settings.minAmount) || 0,
+          incrementAmount: Number(settings.incrementAmount) || 1,
+          pointsPerIncrement: Number(settings.pointsPerIncrement) || 0
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -66,8 +74,8 @@ export default function Settings() {
             <Label className="text-black font-bold">Minimum Amount for Points (₹)</Label>
             <Input 
               type="number" 
-              value={settings.minAmount}
-              onChange={(e) => setSettings({ ...settings, minAmount: Number(e.target.value) })}
+              value={settings.minAmount === '' ? '' : settings.minAmount}
+              onChange={(e) => setSettings({ ...settings, minAmount: e.target.value === '' ? '' : Number(e.target.value) })}
               className="bg-white text-black border-[#F2F2F2]"
             />
             <p className="text-[10px] text-black opacity-60">The minimum purchase value to start earning points.</p>
@@ -77,8 +85,8 @@ export default function Settings() {
             <Label className="text-black font-bold">Points Awarded (Base & Increments)</Label>
             <Input 
               type="number" 
-              value={settings.pointsPerIncrement}
-              onChange={(e) => setSettings({ ...settings, pointsPerIncrement: Number(e.target.value) })}
+              value={settings.pointsPerIncrement === '' ? '' : settings.pointsPerIncrement}
+              onChange={(e) => setSettings({ ...settings, pointsPerIncrement: e.target.value === '' ? '' : Number(e.target.value) })}
               className="bg-white text-black border-[#F2F2F2]"
             />
             <p className="text-[10px] text-black opacity-60">Number of points awarded at the minimum amount, and for each subsequent increment.</p>
@@ -88,8 +96,8 @@ export default function Settings() {
             <Label className="text-black font-bold">Increment Step (₹)</Label>
             <Input 
               type="number" 
-              value={settings.incrementAmount}
-              onChange={(e) => setSettings({ ...settings, incrementAmount: Number(e.target.value) })}
+              value={settings.incrementAmount === '' ? '' : settings.incrementAmount}
+              onChange={(e) => setSettings({ ...settings, incrementAmount: e.target.value === '' ? '' : Number(e.target.value) })}
               className="bg-white text-black border-[#F2F2F2]"
             />
             <p className="text-[10px] text-black opacity-60">For every additional amount of this value above the minimum, award the points above again.</p>

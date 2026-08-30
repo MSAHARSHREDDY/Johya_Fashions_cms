@@ -64,6 +64,7 @@ import {
 } from '@/components/ui/popover';
 
 import { customerApi } from '@/services/customerApi';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Customer, Category } from '@/types/customer';
 import CustomerForm from '@/components/CustomerForm';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -131,15 +132,18 @@ export default function Customers({ onView, globalSearch = '' }: CustomersProps)
   const [adjustPointsValue, setAdjustPointsValue] = useState('');
   const [purchaseAmount, setPurchaseAmount] = useState('');
   const [purchaseRewards, setPurchaseRewards] = useState(0);
+  const [purchaseCategories, setPurchaseCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     const val = Number(purchaseAmount);
-    if (!isNaN(val)) {
-      setPurchaseRewards(calculateRewards(val));
+    if (!isNaN(val) && quickLogCustomer) {
+      const currentTotalRewards = calculateRewards(quickLogCustomer.price);
+      const newTotalRewards = calculateRewards(quickLogCustomer.price + val);
+      setPurchaseRewards(Math.max(0, newTotalRewards - currentTotalRewards));
     } else {
       setPurchaseRewards(0);
     }
-  }, [purchaseAmount]);
+  }, [purchaseAmount, quickLogCustomer]);
 
   const addPurchaseMutation = useMutation({
     mutationFn: (data: any) => customerApi.addPurchase(quickLogCustomer?._id || '', data),
@@ -150,6 +154,7 @@ export default function Customers({ onView, globalSearch = '' }: CustomersProps)
       setQuickLogCustomer(null);
       setPurchaseAmount('');
       setPurchaseRewards(0);
+      setPurchaseCategories([]);
     },
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to log purchase')
   });
@@ -582,10 +587,35 @@ export default function Customers({ onView, globalSearch = '' }: CustomersProps)
                 onChange={(e) => setPurchaseRewards(Number(e.target.value))} 
               />
             </div>
+            <div className="space-y-2">
+              <Label>Categories</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {categoryOptions.map((category) => (
+                  <div 
+                    key={category} 
+                    className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2"
+                  >
+                    <Checkbox
+                      checked={purchaseCategories.includes(category)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setPurchaseCategories([...purchaseCategories, category]);
+                        } else {
+                          setPurchaseCategories(purchaseCategories.filter((c) => c !== category));
+                        }
+                      }}
+                    />
+                    <Label className="text-sm font-normal cursor-pointer leading-none">
+                      {category}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
             <Button 
               className="w-full bg-black text-white hover:bg-black rounded-full py-6 mt-4" 
-              onClick={() => addPurchaseMutation.mutate({ amount: Number(purchaseAmount), rewardsEarned: purchaseRewards, categories: [] })}
-              disabled={addPurchaseMutation.isPending || !purchaseAmount}
+              onClick={() => addPurchaseMutation.mutate({ amount: Number(purchaseAmount), rewardsEarned: purchaseRewards, categories: purchaseCategories })}
+              disabled={addPurchaseMutation.isPending || !purchaseAmount || purchaseCategories.length === 0}
             >
               {addPurchaseMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirm & Save Purchase

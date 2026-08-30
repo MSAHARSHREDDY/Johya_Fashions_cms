@@ -15,16 +15,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import { ArrowUpRight } from 'lucide-react';
-
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { calculateRewards } from '@/lib/settings';
 import { customerApi } from '@/services/customerApi';
 import { cn } from '@/lib/utils';
+import { Category } from '@/types/customer';
+
+const AVAILABLE_CATEGORIES: Category[] = ['Women', 'Men', 'Boys', 'Girls'];
 
 interface CustomerDetailsProps {
   customerId: string;
@@ -36,15 +40,7 @@ export default function CustomerDetails({ customerId, onBack, onEdit }: Customer
   const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
   const [purchaseAmount, setPurchaseAmount] = useState('');
   const [purchaseRewards, setPurchaseRewards] = useState(0);
-
-  useEffect(() => {
-    const val = Number(purchaseAmount);
-    if (!isNaN(val) && val >= 1000) {
-      setPurchaseRewards(Math.max(0, Math.floor(val / 500) - 1) * 50);
-    } else {
-      setPurchaseRewards(0);
-    }
-  }, [purchaseAmount]);
+  const [purchaseCategories, setPurchaseCategories] = useState<Category[]>([]);
 
   const queryClient = useQueryClient();
   const addPurchaseMutation = useMutation({
@@ -57,6 +53,7 @@ export default function CustomerDetails({ customerId, onBack, onEdit }: Customer
       setIsPurchaseOpen(false);
       setPurchaseAmount('');
       setPurchaseRewards(0);
+      setPurchaseCategories([]);
     },
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to log purchase')
   });
@@ -68,6 +65,17 @@ export default function CustomerDetails({ customerId, onBack, onEdit }: Customer
   });
 
   const customer = response?.data;
+
+  useEffect(() => {
+    const val = Number(purchaseAmount);
+    if (!isNaN(val) && customer) {
+      const currentTotalRewards = calculateRewards(customer.price);
+      const newTotalRewards = calculateRewards(customer.price + val);
+      setPurchaseRewards(Math.max(0, newTotalRewards - currentTotalRewards));
+    } else {
+      setPurchaseRewards(0);
+    }
+  }, [purchaseAmount, customer]);
 
   if (isLoading) {
     return (
@@ -252,10 +260,35 @@ export default function CustomerDetails({ customerId, onBack, onEdit }: Customer
                 onChange={(e) => setPurchaseRewards(Number(e.target.value))} 
               />
             </div>
+            <div className="space-y-2">
+              <Label>Categories</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {AVAILABLE_CATEGORIES.map((category) => (
+                  <div 
+                    key={category} 
+                    className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2"
+                  >
+                    <Checkbox
+                      checked={purchaseCategories.includes(category)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setPurchaseCategories([...purchaseCategories, category]);
+                        } else {
+                          setPurchaseCategories(purchaseCategories.filter((c) => c !== category));
+                        }
+                      }}
+                    />
+                    <Label className="text-sm font-normal cursor-pointer leading-none">
+                      {category}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
             <Button 
               className="w-full bg-black text-white hover:bg-black rounded-full" 
-              onClick={() => addPurchaseMutation.mutate({ amount: Number(purchaseAmount), rewardsEarned: purchaseRewards, categories: [] })}
-              disabled={addPurchaseMutation.isPending}
+              onClick={() => addPurchaseMutation.mutate({ amount: Number(purchaseAmount), rewardsEarned: purchaseRewards, categories: purchaseCategories })}
+              disabled={addPurchaseMutation.isPending || purchaseCategories.length === 0}
             >
               Confirm Purchase
             </Button>

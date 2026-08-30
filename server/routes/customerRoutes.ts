@@ -168,26 +168,27 @@ router.post('/recalculate-points', async (req: Request, res: Response) => {
     const customers = await Customer.find({});
     
     for (const customer of customers) {
+      let cumulativeSpent = 0;
       let totalRewards = 0;
       
-      // We can either recalculate based on total price, or per-purchase.
-      // Usually, it's based on total price. But the previous logic calculated per-purchase!
-      // Let's recalculate based on total price to be safe, or iterate purchaseHistory.
-      // The requirement says "change the points and update... reflecting in customer directory"
-      
-      // Recalculating per purchase history:
       for (const purchase of customer.purchaseHistory) {
-        if (purchase.amount >= minAmount) {
-          const increments = Math.floor((purchase.amount - minAmount) / incrementAmount);
-          const earned = (1 + increments) * pointsPerIncrement;
-          purchase.rewardsEarned = earned;
-          totalRewards += earned;
-        } else {
-          purchase.rewardsEarned = 0;
+        cumulativeSpent += purchase.amount;
+        let expectedTotalRewards = 0;
+        
+        const incAmount = incrementAmount || 1;
+        if (cumulativeSpent >= minAmount) {
+          const increments = Math.floor((cumulativeSpent - minAmount) / incAmount);
+          expectedTotalRewards = (1 + increments) * pointsPerIncrement;
         }
+        
+        const earnedThisPurchase = Math.max(0, expectedTotalRewards - totalRewards);
+        purchase.rewardsEarned = earnedThisPurchase;
+        totalRewards = expectedTotalRewards;
       }
       
       customer.rewards = totalRewards;
+      // Ensure the top-level price property matches cumulative spent for safety
+      customer.price = cumulativeSpent;
       await customer.save();
     }
 

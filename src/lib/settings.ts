@@ -37,6 +37,7 @@ export const calculateRewards = (amount: number, settings?: PointSettings): numb
   // Old: Math.max(0, Math.floor(amount / 500) - 1) * 50
   // When amount=1000, 1000/500 - 1 = 1 * 50 = 50.
   // Using the settings:
-  const increments = Math.floor((amount - s.minAmount) / s.incrementAmount);
+  const incAmount = s.incrementAmount || 1;
+  const increments = Math.floor((amount - s.minAmount) / incAmount);
   return (1 + increments) * s.pointsPerIncrement;
 };
