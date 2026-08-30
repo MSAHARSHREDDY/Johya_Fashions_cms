@@ -173,17 +173,16 @@ router.post('/recalculate-points', async (req: Request, res: Response) => {
       
       for (const purchase of customer.purchaseHistory) {
         cumulativeSpent += purchase.amount;
-        let expectedTotalRewards = 0;
+        let earnedThisPurchase = 0;
         
         const incAmount = incrementAmount || 1;
-        if (cumulativeSpent >= minAmount) {
-          const increments = Math.floor((cumulativeSpent - minAmount) / incAmount);
-          expectedTotalRewards = (1 + increments) * pointsPerIncrement;
+        if (purchase.amount >= minAmount) {
+          const increments = Math.floor((purchase.amount - minAmount) / incAmount);
+          earnedThisPurchase = (1 + increments) * pointsPerIncrement;
         }
         
-        const earnedThisPurchase = Math.max(0, expectedTotalRewards - totalRewards);
         purchase.rewardsEarned = earnedThisPurchase;
-        totalRewards = expectedTotalRewards;
+        totalRewards += earnedThisPurchase;
       }
       
       customer.rewards = totalRewards;

@@ -68,14 +68,12 @@ export default function CustomerDetails({ customerId, onBack, onEdit }: Customer
 
   useEffect(() => {
     const val = Number(purchaseAmount);
-    if (!isNaN(val) && customer) {
-      const currentTotalRewards = calculateRewards(customer.price);
-      const newTotalRewards = calculateRewards(customer.price + val);
-      setPurchaseRewards(Math.max(0, newTotalRewards - currentTotalRewards));
+    if (!isNaN(val)) {
+      setPurchaseRewards(calculateRewards(val));
     } else {
       setPurchaseRewards(0);
     }
-  }, [purchaseAmount, customer]);
+  }, [purchaseAmount]);
 
   if (isLoading) {
     return (

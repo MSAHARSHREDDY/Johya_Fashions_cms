@@ -136,14 +136,12 @@ export default function Customers({ onView, globalSearch = '' }: CustomersProps)
 
   useEffect(() => {
     const val = Number(purchaseAmount);
-    if (!isNaN(val) && quickLogCustomer) {
-      const currentTotalRewards = calculateRewards(quickLogCustomer.price);
-      const newTotalRewards = calculateRewards(quickLogCustomer.price + val);
-      setPurchaseRewards(Math.max(0, newTotalRewards - currentTotalRewards));
+    if (!isNaN(val)) {
+      setPurchaseRewards(calculateRewards(val));
     } else {
       setPurchaseRewards(0);
     }
-  }, [purchaseAmount, quickLogCustomer]);
+  }, [purchaseAmount]);
 
   const addPurchaseMutation = useMutation({
     mutationFn: (data: any) => customerApi.addPurchase(quickLogCustomer?._id || '', data),
