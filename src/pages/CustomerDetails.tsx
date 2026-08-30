@@ -269,6 +269,7 @@ export default function CustomerDetails({ customerId, onBack, onEdit }: Customer
                     className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-2"
                   >
                     <Checkbox
+                      id={`purchase-category-${category}`}
                       checked={purchaseCategories.includes(category)}
                       onCheckedChange={(checked) => {
                         if (checked) {
@@ -278,7 +279,7 @@ export default function CustomerDetails({ customerId, onBack, onEdit }: Customer
                         }
                       }}
                     />
-                    <Label className="text-sm font-normal cursor-pointer leading-none">
+                    <Label htmlFor={`purchase-category-${category}`} className="text-sm font-normal cursor-pointer leading-none flex-1">
                       {category}
                     </Label>
                   </div>

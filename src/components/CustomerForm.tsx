@@ -176,6 +176,7 @@ export default function CustomerForm({ customer, onSubmit, isLoading }: Customer
                       >
                       <FormControl>
                         <Checkbox
+                          id={`form-category-${category}`}
                           checked={field.value?.includes(category)}
                           onCheckedChange={(checked) => {
                             return checked
@@ -188,7 +189,7 @@ export default function CustomerForm({ customer, onSubmit, isLoading }: Customer
                           }}
                         />
                       </FormControl>
-                      <FormLabel className="text-sm font-normal cursor-pointer">
+                      <FormLabel htmlFor={`form-category-${category}`} className="text-sm font-normal cursor-pointer flex-1">
                         {category}
                       </FormLabel>
                     </FormItem>
