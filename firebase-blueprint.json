@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "customer": {
+      "title": "Customer",
+      "description": "A customer record in the Johya Fashions CMS",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The customer's full name"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The customer's contact number"
+        },
+        "lastPurchaseDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date of the last purchase"
+        },
+        "categories": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Product categories purchased by the customer"
+        },
+        "price": {
+          "type": "number",
+          "description": "The total value of the last purchase"
+        },
+        "rewards": {
+          "type": "number",
+          "description": "Current reward points balance"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["name", "phoneNumber", "lastPurchaseDate", "categories", "price", "rewards"]
+    }
+  },
+  "firestore": {
+    "/customers": {
+      "schema": "customer",
+      "description": "Collection of customer records"
+    }
+  }
+}

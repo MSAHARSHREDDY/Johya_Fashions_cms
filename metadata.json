@@ -1,0 +1,6 @@
+{
+  "name": "Johya Fashions CMS",
+  "description": "Professional customer management system for Johya Fashions with MongoDB persistence and Cloud Run support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
